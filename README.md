@@ -220,4 +220,4 @@ The application connects to PostgreSQL and exposes basic ticket-related endpoint
 
 Backend Developer | Node.js | TypeScript | PostgreSQL
 
-[GitHub](https://github.com/Ajibzrahz) | [LinkedIn](https://www.linkedin.com/in/raheem-ajibona-489bb4271/)
+[GitHub](https://github.com/Ajibzrahz) | [LinkedIn](https://www.linkedin.com/in/raheem-ajibona)
