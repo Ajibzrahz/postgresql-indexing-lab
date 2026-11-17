@@ -77,12 +77,67 @@ ON tickets (user_id);
 
 Used `EXPLAIN ANALYZE` to compare queries retrieving tickets belonging to users with different record counts.
 
-Observed:
+**Query 1: Retrieve 50,000 tickets**
 
-- PostgreSQL chose a Sequential Scan when retrieving 50,000 of the 51,000 records.
-- PostgreSQL chose an Index Scan when retrieving 1,000 records.
+```sql
+EXPLAIN ANALYZE
+SELECT *
+FROM tickets
+WHERE user_id = 'ff25e139-86de-4166-8810-f05f3475200b';
+```
 
-This demonstrated that PostgreSQL considers the estimated cost of retrieving matching records when choosing an execution plan.
+Actual execution plan:
+
+```text
+Seq Scan on tickets
+(cost=0.00..1582.50 rows=49990 width=45)
+(actual time=0.423..7.505 rows=50000 loops=1)
+
+Filter: (user_id = 'ff25e139-86de-4166-8810-f05f3475200b'::uuid)
+Rows Removed by Filter: 1000
+
+Planning Time: 0.262 ms
+Execution Time: 8.975 ms
+```
+
+PostgreSQL chose a Sequential Scan because the query returned 50,000 out of 51,000 records (approximately 98% of the table).
+
+**Query 2: Retrieve 1,000 tickets**
+
+```sql
+EXPLAIN ANALYZE
+SELECT *
+FROM tickets
+WHERE user_id = 'a7c1297c-90a4-4a81-937e-c5a802f686e4';
+```
+
+Actual execution plan:
+
+```text
+Index Scan using idx_tickets_user_id on tickets
+(cost=0.29..621.31 rows=1010 width=45)
+(actual time=0.030..0.157 rows=1000 loops=1)
+
+Index Cond: (user_id = 'a7c1297c-90a4-4a81-937e-c5a802f686e4'::uuid)
+
+Planning Time: 0.112 ms
+Execution Time: 0.192 ms
+```
+
+PostgreSQL chose an Index Scan because only 1,000 out of 51,000 records matched the condition (approximately 2% of the table).
+
+**Comparison**
+
+| Metric | 50,000 tickets | 1,000 tickets |
+|---|---:|---:|
+| Scan type | Sequential Scan | Index Scan |
+| Actual rows | 50,000 | 1,000 |
+| Execution time | 8.975 ms | 0.192 ms |
+| Rows removed | 1,000 | 0 |
+
+**Observation:** Having an index does not guarantee PostgreSQL will use it. The query planner estimates the cost of available execution strategies and chooses what it considers the most efficient plan.
+
+These are two different queries returning different numbers of records, so their execution times should not be interpreted as a controlled before-and-after index performance comparison.
 
 ### 3. Composite Indexes
 
