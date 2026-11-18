@@ -70,10 +70,7 @@ app.delete("/users/:id", async (req, res) => {
 
     const result = await pool.query(delete_query, [id]);
 
-    res.status(204).json({
-      message: "DELETED",
-      users: result.rows[0],
-    });
+    res.status(204);
   } catch (err) {
     console.error(err);
 
@@ -86,4 +83,3 @@ app.delete("/users/:id", async (req, res) => {
 app.listen(3000, () => {
   console.log("Server is running on port 3000");
 });
-
